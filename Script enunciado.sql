@@ -81,6 +81,24 @@ begin
         raise_application_error(-20002, 'Vehículo inexistente.');
   end;
 
+
+  -- Comprobamos que este disponible las fechas
+  begin
+    select count(*)
+    into v_cliente_exist
+    from reservas r
+    where r.matricula = arg_matricula
+      and (
+        (arg_fecha_ini between r.fecha_ini and r.fecha_fin)
+        or (arg_fecha_fin between r.fecha_ini and r.fecha_fin)
+        or (arg_fecha_ini <= r.fecha_ini and arg_fecha_fin >= r.fecha_fin)
+      );
+
+    if v_cliente_exist > 0 then
+      raise_application_error(-20003, 'El vehículo no está disponible para esas fechas.');
+    end if;
+  end;
+
 end;
 /
 
