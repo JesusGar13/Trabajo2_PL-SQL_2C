@@ -68,6 +68,18 @@ begin
     raise_application_error(-20001, "No pueden realizarse alquileres por periodos inferiores a 1 dia")
   end if;
 
+  -- Consultamos el modelo y el precio diario del vehiculo
+  begin 
+    select v.id_modelo, m.precio_cada_dia
+    into v_id_modelo, v_precio_diario
+    from vehiculos v join modelos m on v.id_modelo = m.id_modelo
+    where v.matricula = arg_matricula
+    for update;
+
+    exception
+      when no_data_found then
+        raise_application_error(-20002, 'Vehículo inexistente.');
+  end;
 
 end;
 /
