@@ -56,12 +56,19 @@ create table lineas_factura(
   primary key ( nroFactura, concepto)
 );
 
-create or replace procedure alquilar_coche(arg_NIF_cliente varchar,
-  arg_matricula varchar, arg_fecha_ini date, arg_fecha_fin date) is
--- declaraciones necesarias
+create or replace procedure alquilar_coche(arg_NIF_cliente varchar, arg_matricula varchar, arg_fecha_ini date, arg_fecha_fin date) is
+  v_id_modelo integer;
+  v_precio_diario numeric(6,2);
+  v_dias_alquiler integer;
+  v_cliente_exist integer;
+  v_factura_id integer;
 begin
-  null;
-  -- implementa aquí tu procedimiento
+  -- Comprobamos las fechas
+  if arg_fecha_ini > arg_fecha_fin then
+    raise_application_error(-20001, "No pueden realizarse alquileres por periodos inferiores a 1 dia")
+  end if;
+
+
 end;
 /
 
