@@ -99,6 +99,17 @@ begin
     end if;
   end;
 
+
+  -- Insetamos la fila de la reserva
+  begin
+    insert into reservas (idReserva, cliente, matricula, fecha_ini, fecha_fin)
+    values (seq_reservas.nextval, arg_NIF_cliente, arg_matricula, arg_fecha_ini, arg_fecha_fin);
+
+    exception
+      when no_data_found then
+        raise_application_error(-20004, 'Cliente inexistente.');
+  end;
+
 end;
 /
 
