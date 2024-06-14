@@ -65,7 +65,7 @@ create or replace procedure alquilar_coche(arg_NIF_cliente varchar, arg_matricul
 begin
   -- Comprobamos las fechas
   if arg_fecha_ini > arg_fecha_fin then
-    raise_application_error(-20001, "No pueden realizarse alquileres por periodos inferiores a 1 dia")
+    raise_application_error(-20001, 'No pueden realizarse alquileres por periodos inferiores a 1 día');
   end if;
 
   -- Consultamos el modelo y el precio diario del vehiculo
@@ -88,16 +88,18 @@ begin
     into v_cliente_exist
     from reservas r
     where r.matricula = arg_matricula
-      and (
-        (arg_fecha_ini between r.fecha_ini and r.fecha_fin)
-        or (arg_fecha_fin between r.fecha_ini and r.fecha_fin)
-        or (arg_fecha_ini <= r.fecha_ini and arg_fecha_fin >= r.fecha_fin)
-      );
-
-    if v_cliente_exist > 0 then
-      raise_application_error(-20003, 'El vehículo no está disponible para esas fechas.');
-    end if;
+      and ((arg_fecha_ini between r.fecha_ini and r.fecha_fin) 
+        or (arg_fecha_fin between r.fecha_ini and r.fecha_fin) 
+        or (arg_fecha_ini <= r.fecha_ini and arg_fecha_fin >= r.fecha_fin));
+  exception
+    when others then
+      raise_application_error(-20003, 'Error al comprobar la disponibilidad del vehículo.');
   end;
+
+  if v_cliente_exist > 0 then
+    raise_application_error(-20003, 'El vehículo no está disponible para esas fechas.');
+  end if;
+  
 
 
   -- Insetamos la fila de la reserva
@@ -112,14 +114,12 @@ begin
 
 
   -- Insertamos la fila de la factura
-  v_dias_alquiler := arg_fecha_fin - arg_fecha_ini;
-
   insert into facturas (nroFactura, importe, cliente)
-  values (seq_num_fact.nextval, v_precio_diario * v_dias_alquiler, arg_NIF_cliente)
+  values (seq_num_fact.nextval, v_precio_diario * (arg_fecha_fin - arg_fecha_ini), arg_NIF_cliente)
   returning nroFactura into v_factura_id;
 
   insert into lineas_factura (nroFactura, concepto, importe)
-  values (v_factura_id, v_dias_alquiler || ' días de alquiler vehículo modelo ' || v_id_modelo, v_precio_diario * v_dias_alquiler);
+  values (v_factura_id, (arg_fecha_fin - arg_fecha_ini) || ' días de alquiler vehículo modelo ' || v_id_modelo, v_precio_diario * (arg_fecha_fin - arg_fecha_ini));
 
   commit;
 
@@ -186,54 +186,13 @@ exec inicializa_test;
 
 create or replace procedure test_alquila_coches is
 begin
-	 
-  --caso 1 nro dias negativo
+	
   begin
     inicializa_test;
-    -- Implementa aquí tu test
+    alquilar_coche('12345678A', '1234-ABC', date '2024-06-15', date '2024-06-18');
+    dbms_output.put_line('Reserva exitosa.');
   end;
   
-  --caso 2 vehiculo inexistente
-  begin
-    inicializa_test;
-    -- Implementa aquí tu test
-  end;
-  
-  --caso 3 cliente inexistente
-  begin
-    inicializa_test;
-   -- Implementa aquí tu test
-  end;
-  
-
-  --caso 4 Intentar alquilar un coche ya alquilado
-  
-  --4.1 la fecha ini del alquiler esta dentro de una reserva
-  begin
-    inicializa_test;    
-	-- Implementa aquí tu test
-  end; 
-  
-   --4.2 la fecha fin del alquiler esta dentro de una reserva
-  begin
-    inicializa_test;    
-	-- Implementa aquí tu test
-  end; 
-  
-  --4.3 el intervalo del alquiler esta dentro de una reserva
-  begin
-    inicializa_test;    
-	-- Implementa aquí tu test
-  end; 
-  
-   --caso 5 Todo correcto
-  declare
-                                                                          
-  begin
-    inicializa_test; 
-    -- Implementa aquí tu test
-  end;
- 
 end;
 /
 
