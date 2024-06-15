@@ -1,3 +1,6 @@
+-- link repositorio: https://github.com/JesusGar13/Trabajo2_PL-SQL_2C
+-- Alumno: Jesús García Ballesteros
+
 drop table modelos cascade constraints;
 drop table vehiculos cascade constraints;
 drop table clientes cascade constraints;
