@@ -1,9 +1,9 @@
-drop table modelos            cascade constraints;
-drop table vehiculos        cascade constraints;
-drop table clientes         cascade constraints;
-drop table facturas       cascade constraints;
-drop table lineas_factura     cascade constraints;
-drop table reservas      cascade constraints;
+drop table modelos cascade constraints;
+drop table vehiculos cascade constraints;
+drop table clientes cascade constraints;
+drop table facturas cascade constraints;
+drop table lineas_factura cascade constraints;
+drop table reservas cascade constraints;
 
 drop sequence seq_modelos;
 drop sequence seq_num_fact;
@@ -186,6 +186,8 @@ end;
 
 exec inicializa_test;
 
+
+
 create or replace procedure test_alquila_coches is
 begin
   -- Caso 1: Todo correcto
@@ -240,7 +242,7 @@ begin
       alquilar_coche('11111111B', '1234-ABC', date '2024-06-12', date '2024-06-16');
     exception
       when others then
-        dbms_output.put_line('Caso 4.1 - Error: ' || sqlerrm);
+        dbms_output.put_line('Caso 4.2 - Error: ' || sqlerrm);
     end;
   end;
 
@@ -253,7 +255,7 @@ begin
       alquilar_coche('11111111B', '1234-ABC', date '2024-06-16', date '2024-06-18');
     exception
       when others then
-        dbms_output.put_line('Caso 4.1 - Error: ' || sqlerrm);
+        dbms_output.put_line('Caso 4.3 - Error: ' || sqlerrm);
     end;
   end;
 
