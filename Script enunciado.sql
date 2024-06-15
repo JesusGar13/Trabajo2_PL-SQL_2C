@@ -90,7 +90,8 @@ begin
     where r.matricula = arg_matricula
       and ((arg_fecha_ini between r.fecha_ini and r.fecha_fin) 
         or (arg_fecha_fin between r.fecha_ini and r.fecha_fin) 
-        or (arg_fecha_ini <= r.fecha_ini and arg_fecha_fin >= r.fecha_fin));
+        or (arg_fecha_ini <= r.fecha_ini and arg_fecha_fin >= r.fecha_fin))
+    for update;
   exception
     when others then
       raise_application_error(-20003, 'Error al comprobar la disponibilidad del vehículo.');
@@ -276,3 +277,29 @@ end;
 
 set serveroutput on
 exec test_alquila_coches;
+
+/*
+P5a - ¿Por qué crees que se hace la recomendación del paso 2? 
+      Con el join entre las tablas de vehiculos y modelos obtenemos todos los vehiculos posibles de nuestra BD
+      Si al obtener el precioDia y el modelo del vehiculo con la matricula pasada por argumento no encuentra estos datos 
+      significa que el vehiculo con esa matricula no existe.(Matamos dos pajaros de un tiro)
+
+P5b - El resultado de la SELECT del paso 4, ¿sigue siendo fiable en el paso 5?, ¿por qué? 
+      Sigue siendo fiable, si el cliente existe para crear una reserva, tambien existira para realizar la insercion 
+      en la tabla facturas de dicho cliente.
+
+P5c - En este paso, la ejecución concurrente del mismo procedimiento ALQUILA con, quizás otros o los 
+mismos argumentos, ¿podría habernos añadido una reserva no recogida en esa SELECT que fuese 
+incompatible con nuestra reserva?, ¿por qué?. 
+      En el caso de que dos transaciones concurrentes que intenten alquilar, la select que comprueba la disponibilidad del 
+      vehiculo puede causar errores ya que una transaccion podria verificar la disponibilidad del vehiculo, 
+      luego otra reservar ese vehiculo y que la primera reserve el mismo vehiculo que la sefgunda.
+      Para solucionar este problema podemos bloquear las filas que esta consultando con ayuda de FOR UPDATE.
+
+P5d - ¿Qué tipo de estrategia de programación has empleado en tu código? ¿Cómo se refleja esto en tu 
+código? (la respuesta a esta segunda pregunta del apartado d es necesaria para poder evaluar la 
+primera) 
+      No se ha usado una única estrategia, se ha programado tanto de forma defensiva, con comprobación y verificación de datos
+      para verificar las fechas o la existencia del cliente, como con el control de excepciones como ha sido con la 
+      comprobacion de existia el vehiculo con la consulta del modelo y precioDia.
+*/
