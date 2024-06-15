@@ -75,7 +75,6 @@ begin
     from vehiculos v join modelos m on v.id_modelo = m.id_modelo
     where v.matricula = arg_matricula
     for update;
-
     exception   -- Si no encuentra el modelo, no existe el vehiculo con la matricula 
       when no_data_found then 
         raise_application_error(-20002, 'Vehículo inexistente.');
@@ -90,8 +89,7 @@ begin
     where r.matricula = arg_matricula
       and ((arg_fecha_ini between r.fecha_ini and r.fecha_fin) 
         or (arg_fecha_fin between r.fecha_ini and r.fecha_fin) 
-        or (arg_fecha_ini <= r.fecha_ini and arg_fecha_fin >= r.fecha_fin))
-    for update;
+        or (arg_fecha_ini <= r.fecha_ini and arg_fecha_fin >= r.fecha_fin));
   exception
     when others then  -- excepcion para tratar un fallo en la consulta
       raise_application_error(-20003, 'Error al comprobar la disponibilidad del vehículo.');
