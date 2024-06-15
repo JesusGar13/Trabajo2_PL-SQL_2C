@@ -101,17 +101,19 @@ begin
   end if;
   
 
+  
+  select count(*)
+  into v_cliente_exist
+  from clientes c
+  where c.NIF = arg_NIF_cliente;
+
+  if v_cliente_exist = 0 then 
+    raise_application_error(-20004, 'Cliente inexistente');
+  end if;
 
   -- Insetamos la fila de la reserva
-  begin
-    insert into reservas (idReserva, cliente, matricula, fecha_ini, fecha_fin)
-    values (seq_reservas.nextval, arg_NIF_cliente, arg_matricula, arg_fecha_ini, arg_fecha_fin);
-
-    exception
-      when no_data_found then
-        raise_application_error(-20004, 'Cliente inexistente.');
-  end;
-
+  insert into reservas (idReserva, cliente, matricula, fecha_ini, fecha_fin)
+  values (seq_reservas.nextval, arg_NIF_cliente, arg_matricula, arg_fecha_ini, arg_fecha_fin);
 
   -- Insertamos la fila de la factura
   insert into facturas (nroFactura, importe, cliente)
@@ -186,15 +188,89 @@ exec inicializa_test;
 
 create or replace procedure test_alquila_coches is
 begin
-	
+  -- Caso 1: Todo correcto
   begin
     inicializa_test;
     alquilar_coche('12345678A', '1234-ABC', date '2024-06-15', date '2024-06-18');
-    dbms_output.put_line('Reserva exitosa.');
+    dbms_output.put_line('Caso 1 - Reserva exitosa.');
   end;
-  
+
+  -- Caso 2: Número de días negativo
+  begin
+    inicializa_test;
+    begin
+      alquilar_coche('12345678A', '1234-ABC', date '2024-06-15', date '2024-06-14');
+    exception
+      when others then
+        dbms_output.put_line('Caso 2 - Error: ' || sqlerrm);
+    end;
+  end;
+
+  -- Caso 3: Vehículo inexistente
+  begin
+    inicializa_test;
+    begin
+      alquilar_coche('12345678A', '9999-XYZ', date '2024-06-15', date '2024-06-18');
+    exception
+      when others then
+        dbms_output.put_line('Caso 3 - Error: ' || sqlerrm);
+    end;
+  end;
+
+  -- Caso 4: Intentar alquilar un coche ya alquilado
+  -- 4.1 La fecha ini del alquiler está dentro de una reserva
+  begin
+    inicializa_test;
+    alquilar_coche('12345678A', '1234-ABC', date '2024-06-15', date '2024-06-20');
+
+    begin
+      alquilar_coche('11111111B', '1234-ABC', date '2024-06-18', date '2024-06-24');
+    exception
+      when others then
+        dbms_output.put_line('Caso 4.1 - Error: ' || sqlerrm);
+    end;
+  end;
+
+  -- 4.2 La fecha fin del alquiler está dentro de una reserva
+  begin
+    inicializa_test;
+    alquilar_coche('12345678A', '1234-ABC', date '2024-06-15', date '2024-06-20');
+
+    begin
+      alquilar_coche('11111111B', '1234-ABC', date '2024-06-12', date '2024-06-16');
+    exception
+      when others then
+        dbms_output.put_line('Caso 4.1 - Error: ' || sqlerrm);
+    end;
+  end;
+
+  -- 4.3 El intervalo del alquiler está dentro de una reserva
+  begin
+    inicializa_test;
+    alquilar_coche('12345678A', '1234-ABC', date '2024-06-15', date '2024-06-20');
+
+    begin
+      alquilar_coche('11111111B', '1234-ABC', date '2024-06-16', date '2024-06-18');
+    exception
+      when others then
+        dbms_output.put_line('Caso 4.1 - Error: ' || sqlerrm);
+    end;
+  end;
+
+  -- Caso 5: Cliente inexistente
+  begin
+    inicializa_test;
+    begin
+      alquilar_coche('99999999Z', '1234-ABC', date '2024-06-15', date '2024-06-18');
+    exception
+      when others then
+        dbms_output.put_line('Caso 5 - Error: ' || sqlerrm);
+    end;
+  end;
+
 end;
 /
+
 
 set serveroutput on
 exec test_alquila_coches;
