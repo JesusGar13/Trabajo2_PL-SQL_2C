@@ -76,8 +76,8 @@ begin
     where v.matricula = arg_matricula
     for update;
 
-    exception
-      when no_data_found then
+    exception   -- Si no encuentra el modelo, no existe el vehiculo con la matricula 
+      when no_data_found then 
         raise_application_error(-20002, 'Vehículo inexistente.');
   end;
 
@@ -93,22 +93,22 @@ begin
         or (arg_fecha_ini <= r.fecha_ini and arg_fecha_fin >= r.fecha_fin))
     for update;
   exception
-    when others then
+    when others then  -- excepcion para tratar un fallo en la consulta
       raise_application_error(-20003, 'Error al comprobar la disponibilidad del vehículo.');
   end;
 
-  if v_cliente_exist > 0 then
+  if v_cliente_exist > 0 then -- Comprobamos que no hay clientes entre las fechas ini y fin
     raise_application_error(-20003, 'El vehículo no está disponible para esas fechas.');
   end if;
   
 
-  
+  -- Consultamos el numero de clientes con ese NIF, solo debe haber 1
   select count(*)
   into v_cliente_exist
   from clientes c
   where c.NIF = arg_NIF_cliente;
 
-  if v_cliente_exist = 0 then 
+  if v_cliente_exist = 0 then -- Si no hay cliente con ese NIF, no existe
     raise_application_error(-20004, 'Cliente inexistente');
   end if;
 
@@ -121,6 +121,7 @@ begin
   values (seq_num_fact.nextval, v_precio_diario * (arg_fecha_fin - arg_fecha_ini), arg_NIF_cliente)
   returning nroFactura into v_factura_id;
 
+  -- Insertamos la linea de la factura insertada, mismo nroFactura
   insert into lineas_factura (nroFactura, concepto, importe)
   values (v_factura_id, (arg_fecha_fin - arg_fecha_ini) || ' días de alquiler vehículo modelo ' || v_id_modelo, v_precio_diario * (arg_fecha_fin - arg_fecha_ini));
 
